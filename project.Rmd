@@ -1,0 +1,67 @@
+---
+title: "ML Project"
+output: html_document
+---
+
+# Introduction
+
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
+
+```{r, eval=FALSE}
+library(dplyr); 
+library(caret); 
+```
+
+```{r, eval=FALSE}
+
+file.url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(file.url, destfile = "pml-training.csv", method = "curl")
+```
+```{r}
+training <- read.csv("pml-training.csv", na.string = c("", "NA"))
+dim(training)
+
+```
+
+From this we can see that there are 19622 observations of 160 variables. Drop the variables that won't help with prediction.  It makes sense to remove all rows where new_window = Yes, since those are summary rows. We will also remove all columns that only have NA values.
+
+
+```{r}
+ training <- subset(training, new_window == "no")
+
+  ##remove NA values
+  training <- Filter(function(x)!all(is.na(x)), training)
+  dim(training)
+```
+
+We will remove  will remove the date/time, window, and user columns.
+
+```{r}
+ colsToRemove <-  c( "user_name", "raw_timestamp_part_1","raw_timestamp_part_2", "cvtd_timestamp","new_window","num_window")
+  
+  training <- training[,!(names(training) %in% colsToRemove)] 
+ dim(training)
+```
+
+Now our dataset of 54 variables and 19,216 observations.In order to perform some cross validation, we will split the training dataset into a training and test set.
+
+```{r}
+library(caret)
+inTrain <- createDataPartition(y=training$classe, p=0.75, list=FALSE) 
+training <-training[inTrain,] 
+testing <- training[-inTrain,]
+```
+
+#Model Selection
+### Linear Discriminant Analysis
+
+It is similar to logistic regression, it is more naturally suited to classification problems like this one where the outcome variable is multinomial.
+
+```{r}
+# Fit a linear discriminant model
+fit.lda <- train(classe ~ .,
+             method = "lda",
+             data = training)
+pred.lda <- predict(fit.lda, newdata = testing)
+confusionMatrix(pred.lda, testing$classe)$overall[1]
+```
