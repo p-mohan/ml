@@ -47,21 +47,32 @@ Now our dataset of 54 variables and 19,216 observations.In order to perform some
 
 ```{r}
 library(caret)
+
 inTrain <- createDataPartition(y=training$classe, p=0.75, list=FALSE) 
 training <-training[inTrain,] 
 testing <- training[-inTrain,]
 ```
 
 #Model Selection
-### Linear Discriminant Analysis
+### Random Forest
 
-It is similar to logistic regression, it is more naturally suited to classification problems like this one where the outcome variable is multinomial.
 
 ```{r}
-# Fit a linear discriminant model
-fit.lda <- train(classe ~ .,
-             method = "lda",
-             data = training)
-pred.lda <- predict(fit.lda, newdata = testing)
-confusionMatrix(pred.lda, testing$classe)$overall[1]
+# Fit a random forest
+fit <- train(classe~.,data=training, method="rf",trControl=trainControl(method = "cv"))
+pred <- predict(fit, newdata = testing)
+confusionMatrix(pred, testing$classe)$overall[1]
+```
+
+```{r}
+
+pml_write_files = function(x){
+    n = length(x)
+    for(i in 1:20){
+        filename = paste0("problem_id_",i,".txt")
+        write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+    }
+}
+
+pml_write_files(pred)
 ```

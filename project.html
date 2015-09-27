@@ -92,14 +92,24 @@ testing &lt;- training[-inTrain,]</code></pre>
 <h3>Linear Discriminant Analysis</h3>
 <p>It is similar to logistic regression, it is more naturally suited to classification problems like this one where the outcome variable is multinomial.</p>
 <pre class="r"><code># Fit a linear discriminant model
-fit.lda &lt;- train(classe ~ .,
+fit &lt;- train(classe ~ .,
              method = &quot;lda&quot;,
              data = training)</code></pre>
 <pre><code>## Loading required package: MASS</code></pre>
-<pre class="r"><code>pred.lda &lt;- predict(fit.lda, newdata = testing)
-confusionMatrix(pred.lda, testing$classe)$overall[1]</code></pre>
+<pre class="r"><code>pred &lt;- predict(fit, newdata = testing)
+confusionMatrix(pred, testing$classe)$overall[1]</code></pre>
 <pre><code>##  Accuracy 
-## 0.9683421</code></pre>
+## 0.9634855</code></pre>
+<pre class="r"><code># code as suggested by Coursera
+pml_write_files = function(x){
+    n = length(x)
+    for(i in 1:20){
+        filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
+        write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+    }
+}
+
+pml_write_files(pred)</code></pre>
 </div>
 </div>
 
