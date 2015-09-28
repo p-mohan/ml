@@ -7,17 +7,18 @@ output: html_document
 
 The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
 
-```{r, eval=FALSE}
-library(dplyr); 
-library(caret); 
+```{r}
+library(dplyr)
+library(caret)
+library(doParallel)
+
 ```
 
-```{r, eval=FALSE}
+```{r}
 
 file.url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
-download.file(file.url, destfile = "pml-training.csv", method = "curl")
-```
-```{r}
+download.file(file.url, destfile = "pml-training.csv", method = "wget")
+
 training <- read.csv("pml-training.csv", na.string = c("", "NA"))
 dim(training)
 
@@ -46,7 +47,6 @@ We will remove  will remove the date/time, window, and user columns.
 Now our dataset of 54 variables and 19,216 observations.In order to perform some cross validation, we will split the training dataset into a training and test set.
 
 ```{r}
-library(caret)
 
 inTrain <- createDataPartition(y=training$classe, p=0.75, list=FALSE) 
 training <-training[inTrain,] 
@@ -55,11 +55,16 @@ testing <- training[-inTrain,]
 
 #Model Selection
 ### Random Forest
+Create a cluster with `doParallel` to use 8 parallel threads.
+```{r}
+cl <- makeCluster(8)
+registerDoParallel(8)
+```
 
 
 ```{r}
-# Fit a random forest
 fit <- train(classe~.,data=training, method="rf",trControl=trainControl(method = "cv"))
+stopCluster(cl)
 pred <- predict(fit, newdata = testing)
 confusionMatrix(pred, testing$classe)$overall[1]
 ```
